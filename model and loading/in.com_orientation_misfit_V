@@ -1,0 +1,50 @@
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+atom_modify map array
+shell rmdir com_orientation_misfit_V #Replace the placeholders with the corresponding values.orientation=[001], [011], [012], [123], [125], [112], [122], [345], [111]
+shell mkdir com_orientation_misfit_V #misfit=±1.4%, ±2.0%; V=47%, 50%, 65%
+
+read_data relax_orientation_misfit_V.lmp
+
+pair_style eam/alloy
+pair_coeff * * NiAl.eam.alloy Ni Ni Al
+
+thermo 100
+thermo_style custom step etotal temp press vol pxx pyy pzz lx ly lz
+timestep 0.001
+
+variable tmp equal "lz"
+variable L0 equal ${tmp}
+variable tmp2 equal "lx"
+variable L1 equal ${tmp2}
+variable tmp3 equal "ly"
+variable L2 equal ${tmp3}
+variable strain_z equal "(lz-v_L0)/v_L0"
+variable strain_x equal "(lx-v_L1)/v_L1"
+variable strain_y equal "(ly-v_L2)/v_L2"
+variable p1 equal 'v_strain_z'
+variable p2 equal '-pxx/10000'
+variable p3 equal '-pyy/10000'
+variable p4 equal '-pzz/10000'
+variable p5 equal 'v_strain_x'
+variable p6 equal 'v_strain_y'
+variable e1 equal 'ke'
+variable e2 equal 'pe'
+variable e3 equal 'etotal'
+
+fix def1 all print 100 '${p1} ${p2} ${p3} ${p4} ${p5} ${p6} ${e1} ${e2} ${e3}' file com_orientation_misfit_V/com_orientation_misfit_V.txt screen no
+
+velocity all create 300 seed dist gaussian#seed=47;892;13579;68421;684895
+
+fix 1 all npt temp 300 300 0.1 y 0 0 1.0 z 0 0 1.0
+fix 2 all deform 1 x erate -0.001 units box remap x
+
+dump 1 all custom 1000 com_orientation_misfit_V/*.all.dump id type x y z
+
+run 150000
+
+write_data com_orientation_misfit_V/com_orientation_misfit_V.lmp
+
+print "com_orientation_misfit_V done"

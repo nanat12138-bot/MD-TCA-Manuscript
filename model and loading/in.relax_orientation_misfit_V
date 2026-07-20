@@ -1,0 +1,66 @@
+boundary p p p
+units metal
+shell rmdir relax_orientation_misfit_V#Replace the placeholders with the corresponding values.orientation=[001], [011], [012], [123], [125], [112], [122], [345], [111]
+#misfit=±1.4%, ±2.0%; V=47%, 50%, 65%
+shell mkdir relax_orientation_misfit_V
+atom_style atomic
+atom_modify map array
+neighbor 0.3 bin
+neigh_modify every 1 delay 0 check yes
+read_data _orientation_misfit_V.lmp
+
+pair_style eam/alloy
+pair_coeff * * NiAl.eam.alloy Ni Ni Al
+
+min_style cg
+minimize 1.0e-4 1.0e-6 100 1000
+
+thermo 50
+thermo_style custom step etotal temp press vol pxx pyy pzz lx ly lz 
+timestep 0.001
+
+
+variable tmp equal "lz"
+variable L0 equal ${tmp}
+variable tmp2 equal "lx"
+variable L1 equal ${tmp2}
+
+dump 1 all custom 5000 relax_orientation_misfit_V/*.all.dump id type x y z
+ 
+reset_timestep 0
+variable strain_z equal "(lz-v_L0)/v_L0"
+variable strain_x equal "(lx-v_L1)/v_L1"
+variable p1 equal 'v_strain_z'                    
+variable p2 equal '-pxx/10000'                   
+variable p3 equal '-pyy/10000'
+variable p4 equal '-pzz/10000'
+variable p5 equal 'v_strain_x'
+variable e1 equal 'ke'
+variable e2 equal 'pe'
+variable e3 equal 'etotal'
+
+thermo 50
+thermo_style custom step etotal temp press vol pxx pyy pzz lx ly lz v_strain_x v_strain_z
+
+velocity all create 300 seed dist gaussian#seed=47;892;13579;68421;684895
+
+fix 1 all npt temp 300 300 $(100*dt) x 0 0 $(1000*dt) y 0 0 $(1000*dt) z 0 0 $(1000*dt)
+fix def1 all print 100 '${p1} ${p2} ${p3} ${p4} ${p5} ${e1} ${e2} ${e3}' file relax_orientation_misfit_V/relax_orientation_misfit_V.txt screen no
+balance 1.1 shift xyz 20 1.0
+run 10000
+
+write_data relax_orientation_misfit_V.lmp
+undump 1
+print "relax_orientation_misfit_V done"
+
+
+
+
+
+
+
+
+
+
+
+
