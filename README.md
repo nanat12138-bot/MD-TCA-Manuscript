@@ -23,7 +23,7 @@ model and loading/
   model_change the orientation.py (building the non-standard model)
   CSL_lattice constant.py (After adjusting the lattice constants, calculate the minimum lattice matching number.)
   orientation_Matrix.py (calculate target crystal orientation matrix)
-   Ni.eam.alloy (the simulations employed the embedded atom method (EAM) potential included in this file and no modification was made to the potential file.)
+  Ni.eam.alloy (the simulations employed the embedded atom method (EAM) potential included in this file and no modification was made to the potential file.)
 4. Simulation Procedure
 The simulations can be reproduced using the following steps.
 -Step 1
@@ -39,3 +39,8 @@ Relax the structure.
 Perform simulation.
   in.com
   in.ten
+-Step 4
+Analyze data
+  ovito_burgers_num.py
+  ovito_dislocation length.py
+  visualizing with Ovito
